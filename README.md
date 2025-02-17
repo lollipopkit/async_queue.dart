@@ -1,39 +1,78 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# Async Queue
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages). 
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages). 
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+A Dart implementation of an asynchronous queue with support for capacity limits, timeouts, and waiting operations.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
-
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+- Optional capacity limits
+- Timeout support for operations
+- Multiple producers and consumers
+- Queue state monitoring
+- Clear and close operations
+- Peek functionality
+- Wait for empty queue
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
-
 ```dart
-const like = 'sample';
+import 'package:async_queue/async_queue.dart';
+
+// Create an unlimited queue
+final queue = AsyncQueue<int>();
+
+// Create a bounded queue
+final boundedQueue = AsyncQueue<int>(capacity: 2);
+
+// Basic operations
+await queue.add(1);
+final item = await queue.take(); // 1
+
+// Add with timeout
+try {
+  await queue.add(2, timeout: Duration(seconds: 1));
+} on TimeoutException catch (e) {
+  print('Operation timed out');
+}
+
+// Peek at first item without removing it
+final firstItem = queue.peek();
+
+// Wait for queue to empty
+await queue.wait();
+
+// Clear the queue
+queue.clear();
+
+// Close the queue
+queue.close();
 ```
 
-## Additional information
+## API Reference
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+### Constructor
+
+- `AsyncQueue({int? capacity})` - Creates a new queue with optional capacity limit
+
+### Methods
+
+- `Future<void> add(T item, {Duration? timeout})` - Adds an item to the queue
+- `Future<void> addAll(Iterable<T> items)` - Adds multiple items to the queue
+- `Future<T> take({Duration? timeout})` - Takes an item from the queue
+- `T peek()` - Returns the first item without removing it
+- `void clear()` - Removes all items from the queue
+- `void close()` - Closes the queue
+- `Future<void> wait()` - Waits for all items to be taken
+
+### Properties
+
+- `int? capacity` - Maximum number of items (null for unlimited)
+- `int length` - Current number of items
+- `bool isClosed` - Whether the queue is closed
+- `bool isFull` - Whether the queue is at capacity
+- `bool isEmpty` - Whether the queue is empty
+
+## License
+
+```
+MIT lollipopkit
+```
