@@ -1,44 +1,7 @@
 import 'dart:async';
 
-abstract interface class AsyncQueueIface<T> {
-  /// The maximum number of items that can be added to the queue.
-  /// 
-  /// - If the queue is full, [add] will wait until an item is taken.
-  /// - If the queue is empty, [take] will wait until an item is added.
-  /// - If [capacity] is null, the queue has no limit.
-  /// 
-  /// Must greater than 0.
-  int? get capacity;
-
-  /// Adds an item to the queue.
-  /// 
-  /// If the queue is full, this method will wait until an item is taken.
-  Future<void> add(T item);
-
-  /// Adds multiple items to the queue.
-  /// 
-  /// If the queue is full, this method will wait until an item is taken.
-  Future<void> addAll(Iterable<T> items);
-
-  /// Takes an item from the queue.
-  /// 
-  /// If the queue is empty, this method will wait until an item is added.
-  Future<T> take();
-
-  /// Returns the number of items in the queue.
-  int get length;
-
-  /// Clears all items from the queue.
-  /// 
-  /// It's recommended to call this method before disposing the queue.
-  void clear();
-
-  /// Waits for all items in the queue to be taken.
-  Future<void> wait();
-}
-
 /// A queue that processes elements asynchronously.
-class AsyncQueue<T> implements AsyncQueueIface<T> {
+class AsyncQueue<T> {
   final int? _capacity;
   final _queue = <T>[];
   final _waiters = <Completer<T>>[];
@@ -51,13 +14,21 @@ class AsyncQueue<T> implements AsyncQueueIface<T> {
     }
   }
 
-  @override
+  /// The maximum number of items that can be added to the queue.
+  /// 
+  /// - If the queue is full, [add] will wait until an item is taken.
+  /// - If the queue is empty, [take] will wait until an item is added.
+  /// - If [capacity] is null, the queue has no limit.
+  /// 
+  /// Must greater than 0.
   int? get capacity => _capacity;
 
-  @override
+  /// Returns the number of items in the queue.
   int get length => _queue.length;
 
-  @override
+  /// Adds an item to the queue.
+  /// 
+  /// If the queue is full, this method will wait until an item is taken.
   Future<void> add(T item) async {
     while (_capacity != null && _queue.length >= _capacity) {
       final completer = Completer<void>();
@@ -72,14 +43,18 @@ class AsyncQueue<T> implements AsyncQueueIface<T> {
     }
   }
 
-  @override
+  /// Adds multiple items to the queue.
+  /// 
+  /// If the queue is full, this method will wait until an item is taken.
   Future<void> addAll(Iterable<T> items) async {
     for (final item in items) {
       await add(item);
     }
   }
 
-  @override
+  /// Takes an item from the queue.
+  /// 
+  /// If the queue is empty, this method will wait until an item is added.
   Future<T> take() async {
     if (_queue.isEmpty) {
       final completer = Completer<T>();
@@ -97,7 +72,9 @@ class AsyncQueue<T> implements AsyncQueueIface<T> {
     return item;
   }
 
-  @override
+  /// Clears all items from the queue.
+  /// 
+  /// It's recommended to call this method before disposing the queue.
   void clear() {
     _queue.clear();
     for (final waiter in _waiters) {
@@ -112,7 +89,7 @@ class AsyncQueue<T> implements AsyncQueueIface<T> {
     _waitCompleter = null;
   }
 
-  @override
+  /// Waits for all items in the queue to be taken.
   Future<void> wait() async {
     if (_queue.isEmpty) return;
     

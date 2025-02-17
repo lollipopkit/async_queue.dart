@@ -1,6 +1,4 @@
-/// Support for doing something awesome.
-///
-/// More dartdocs go here.
+/// An asynchronous queue implementation
 library;
 
 export 'src/async_queue_base.dart';
