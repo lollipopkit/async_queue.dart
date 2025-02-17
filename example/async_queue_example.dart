@@ -3,6 +3,21 @@ import 'dart:async';
 import 'package:async_queue/async_queue.dart';
 
 void main() async {
+  // Create a queue with callbacks
+  final queue = AsyncQueue<int>();
+  
+  // Set up callbacks
+  queue.onAdd = (item) => print('Added: $item');
+  queue.onRemove = (item) => print('Removed: $item');
+
+  // Add some items
+  await queue.add(1);  // prints: Added: 1
+  await queue.add(2);  // prints: Added: 2
+  
+  // Take items
+  await queue.take();  // prints: Removed: 1
+  await queue.take();  // prints: Removed: 2
+
   // Create an unlimited queue
   final unlimitedQueue = AsyncQueue<int>();
   print('Unlimited queue capacity: ${unlimitedQueue.capacity}'); // null

@@ -1,5 +1,8 @@
 import 'dart:async';
 
+/// Callback for when an item is added/taken to the queue
+typedef OnItemCallback<T> = void Function(T item);
+
 /// An asynchronous queue implementation that supports:
 /// - capacity limits
 /// - waiting operations.
@@ -11,18 +14,34 @@ class AsyncQueue<T> {
   Completer<void>? _waitCompleter;
   bool _isClosed = false;
 
+  /// {@template async_queue_on_add}
+  /// Callback that's called when an item is added to the queue.
+  /// {@endtemplate}
+  OnItemCallback<T>? onAdd;
+
+  /// {@template async_queue_on_remove}
+  /// Callback that's called when an item is taken from the queue.
+  /// {@endtemplate}
+  OnItemCallback<T>? onRemove;
+
   /// Creates an [AsyncQueue] with an optional capacity limit.
-  /// 
+  ///
   /// - [capacity] is the maximum number of items that can be added to the queue.
-  /// If the queue is full, [add] will wait until an item is taken. 
+  /// If the queue is full, [add] will wait until an item is taken.
   /// If it's null, the queue has no limit.
-  AsyncQueue({int? capacity})
-      : _capacity = capacity,
+  /// - [onAdd] is a callback that's called when an item is added to the queue.
+  /// - [onRemove] is a callback that's called when an item is taken from the queue.
+  AsyncQueue({
+    int? capacity,
+    this.onAdd,
+    this.onRemove,
+  })  : _capacity = capacity,
         _queue = <T>[],
         _waiters = <Completer<T>>[],
         _addCompleters = <Completer<void>>[] {
     if (capacity != null && capacity <= 0) {
-      throw ArgumentError.value(capacity, 'capacity', 'Must be greater than 0 if specified');
+      throw ArgumentError.value(
+          capacity, 'capacity', 'Must be greater than 0 if specified');
     }
   }
 
@@ -139,6 +158,7 @@ extension _Basic<T> on AsyncQueue<T> {
     }
 
     _queue.add(item);
+    onAdd?.call(item);
     _notifyWaiters();
   }
 
@@ -150,6 +170,8 @@ extension _Basic<T> on AsyncQueue<T> {
     }
 
     final item = _queue.removeAt(0);
+    onRemove?.call(item);
+
     if (_addCompleters.isNotEmpty) {
       final addCompleter = _addCompleters.removeAt(0);
       addCompleter.complete();

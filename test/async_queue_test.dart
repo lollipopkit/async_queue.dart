@@ -157,5 +157,23 @@ void main() {
       expect(queue.capacity, isNull);
       expect(queue.isFull, isFalse);
     });
+
+    test('callbacks are triggered correctly', () async {
+      final queue = AsyncQueue<int>();
+      var addedItems = <int>[];
+      var removedItems = <int>[];
+      
+      queue.onAdd = (item) => addedItems.add(item);
+      queue.onRemove = (item) => removedItems.add(item);
+
+      await queue.add(1);
+      await queue.add(2);
+      expect(addedItems, equals([1, 2]));
+
+      await queue.take();
+      await queue.take();
+      expect(removedItems, equals([1, 2]));
+    });
+
   });
 }
